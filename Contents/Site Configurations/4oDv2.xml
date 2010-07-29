@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/site/@site has "#4oDv2" at the end to make it unique for this version of the plugin.
+/site/@plugin also has the extra "#4oDv2" to differentiate the original HTML embed tag from the embed tag that this site config will write into the HTML page.
+-->
+<site site="http://.*channel4.com.*#4oDv2"
+	plugin="4odplayer.*swf#4oDv2"
+	initialState="loading"
+	version="1.0">
+
+	<setCookie domain="www.channel4.com" path="/" name="C4AccessControlCookie" secure="false" value="{'allowedToWatch':18}" />
+
+	<crop x="0" y="1" width="0" height="-22" />
+
+	<seekbar type="simple">
+		<start x="42" y="-11" />
+		<end x="-190" y="-11" />
+		<played>
+			<!-- Progress is determined by the black pixels in the black/white grid that is the progressbar -->
+			<color rgb="ff0000" /><!-- The red that the javascript changes any other colour into inside the "loading" state -->
+			<color rgb="ffffff" /><!-- Colour of the thumb and of the first colour of the vertical bar(s) that indicate ads -->
+			<color rgb="333333" /><!-- Seconds colour of the vertical bar(s) that indicate ads -->
+		</played>
+	</seekbar>
+
+	<!-- Loading
+	In this state javascript grabs, changes and writes back the HTML embed tag.
+	It also waits for 5 seconds before switching to the playing state. This is to prevent end detection from matching right away.
+	-->
+	<state name="loading">
+		<event>
+			<condition>
+				<frameLoaded />
+			</condition>
+			<action>
+				<run script="function makeChanges(){var el=document.getElementById('catchUpPlayer');if(el!=null){var x=el.parentNode.innerHTML;x=x.replace('.swf','.swf#4oDv2');x=x.replace(/primaryColor=0x([0-9A-F]{6})/i,'primaryColor=0xFF0000');document.getElementsByTagName('html')[0].innerHTML=x;}else{setTimeout('makeChanges()',100);}}makeChanges();" />
+				<pause time="5000" />
+				<goto state="playing" />
+			</action>
+		</event>
+	</state>
+
+	<!-- Playing -->
+	<state name="playing">
+		<event>
+			<condition>
+				<command name="pause" />
+			</condition>
+			<action>
+				<click x="9" y="-11" />
+				<goto state="paused" />
+			</action>
+		</event>
+
+		<!-- Video ends -->
+		<event>
+			<condition>
+				<url matches="assets.*\.jpg" />
+			</condition>
+			<action>
+				<goto state="end" />
+			</action>
+		</event>
+	</state>
+
+	<!-- Paused -->
+	<state name="paused">
+		<event>
+			<condition>
+				<command name="play" />
+			</condition>
+			<action>
+				<click x="9" y="-11" />
+				<goto state="playing" />
+			</action>
+		</event>
+	</state>
+</site>
