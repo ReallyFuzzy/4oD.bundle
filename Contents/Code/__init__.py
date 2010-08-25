@@ -24,7 +24,7 @@ PROGRAMMES_BY_LETTER       = '%s/programmes/atoz/%%s/page-%%%%d' % BASE_URL
 PROGRAMMES_SEARCH          = '%s/programmes/long-form-search/?q=%%s' % BASE_URL
 
 # Default artwork and icon(s)
-PLUGIN_ARTWORK             = 'art-default.png'
+PLUGIN_ARTWORK             = 'art-default.jpg'
 PLUGIN_ICON_DEFAULT        = 'icon-default.png'
 PLUGIN_ICON_SEARCH         = 'icon-search.png'
 
