@@ -22,6 +22,8 @@
 	<string>MacOSX</string>
 	<key>PlexFrameworkVersion</key>
 	<string>1</string>
+	<key>PlexMediaContainer</key>
+	<string>Flash</string>
 	<key>PlexPluginAuthor</key>
 	<string>Sander Spies</string>
 	<key>PlexPluginDebug</key>
