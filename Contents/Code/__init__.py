@@ -2,12 +2,12 @@
 ###################################################################################################
 #
 # 4oD plugin for Plex (by sander1)
-# v2.0 (July 13, 2010)
+# http://wiki.plexapp.com/index.php/4oD
 #
 ###################################################################################################
 
-from PMS import *
-import re, string
+import re
+from string import ascii_uppercase
 
 ###################################################################################################
 
@@ -45,8 +45,8 @@ def Start():
   WebVideoItem.thumb       = R(PLUGIN_ICON_DEFAULT)
 
   # Set the default cache time
-  HTTP.SetCacheTime(CACHE_1DAY)
-  HTTP.SetHeader('User-Agent', 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.6; en-US; rv:1.9.2.6) Gecko/20100625 Firefox/3.6.6')
+  HTTP.CacheTime = CACHE_1DAY
+  HTTP.Headers['User-agent'] = 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.6; en-US; rv:1.9.2.9) Gecko/20100824 Firefox/3.6.9'
 
 ###################################################################################################
 
@@ -80,7 +80,7 @@ def BrowseDate(sender):
 def Schedule(sender, date):
   dir = MediaContainer(title2=sender.itemTitle)
 
-  programmes = XML.ElementFromURL(PROGRAMMES_BY_DATE % date, isHTML=True, errors='ignore', cacheTime=1800).xpath('//li')
+  programmes = HTML.ElementFromURL(PROGRAMMES_BY_DATE % date, errors='ignore', cacheTime=1800).xpath('//li')
   for p in programmes:
     title = p.xpath('.//a/span/text()')[0].strip()
     time = p.xpath('.//span[@class="txTime"]')[0].text.strip()
@@ -97,7 +97,7 @@ def Schedule(sender, date):
 def BrowseCategory(sender):
   dir = MediaContainer(title2=sender.itemTitle)
 
-  categories = XML.ElementFromURL(PROGRAMMES_CATEGORIES, isHTML=True, errors='ignore').xpath('/html/body//div[@id="categoryList"]//li/a')
+  categories = HTML.ElementFromURL(PROGRAMMES_CATEGORIES, errors='ignore').xpath('/html/body//div[@id="categoryList"]//li/a')
   for c in categories:
     title = c.xpath('./span')[0].text.strip()
     tag = c.get('href').rsplit('/',1)[1]
@@ -112,7 +112,7 @@ def BrowseAZ(sender):
   dir = MediaContainer(title2=sender.itemTitle)
 
   # A to Z
-  for char in string.ascii_uppercase:
+  for char in list(ascii_uppercase):
     dir.Append(Function(DirectoryItem(Programmes, title=char), char=char))
 
   # 0-9
@@ -131,13 +131,13 @@ def Programmes(sender, tag=None, char=None):
     content_url = PROGRAMMES_BY_LETTER % char.lower()
 
   # How many pages are there?
-  numPages = len( XML.ElementFromURL(content_url % 1, isHTML=True, errors='ignore').xpath('/html/body//div[contains(@class,"pagination")][1]//*[@title="Page"]') )
+  numPages = len( HTML.ElementFromURL(content_url % 1, errors='ignore').xpath('/html/body//div[contains(@class,"pagination")][1]//*[@title="Page"]') )
   if numPages == 0:
     numPages = 1
 
   # Loop over the pages
   for i in range(1, numPages+1):
-    programmes = XML.ElementFromURL(content_url % i, isHTML=True, errors='ignore').xpath('/html/body//a[@class="watch-on-medium"]')
+    programmes = HTML.ElementFromURL(content_url % i, errors='ignore').xpath('/html/body//a[@class="watch-on-medium"]')
 
     for p in programmes:
       title = p.xpath('./parent::li/h3/a/span[@class="title"]')[0].text.strip()
@@ -160,7 +160,7 @@ def Series(sender, url, thumb):
   if url.find(BASE_URL) == -1:
     url = BASE_URL + url
 
-  series = XML.ElementFromURL(url, isHTML=True, errors='ignore', cacheTime=CACHE_1HOUR).xpath('/html/body//a[contains(@class,"tab")]')
+  series = HTML.ElementFromURL(url, errors='ignore', cacheTime=CACHE_1HOUR).xpath('/html/body//a[contains(@class,"tab")]')
   for s in series:
     title = s.text.strip()
     id = s.get('href').strip('#')
@@ -174,7 +174,7 @@ def Series(sender, url, thumb):
 def Episodes(sender, url, id):
   dir = MediaContainer(viewGroup='InfoList', title2=sender.itemTitle)
 
-  episodes = XML.ElementFromURL(url, isHTML=True, errors='ignore', cacheTime=CACHE_1HOUR).xpath('/html/body//div[@id="' + id + '"]//li')
+  episodes = HTML.ElementFromURL(url, errors='ignore', cacheTime=CACHE_1HOUR).xpath('/html/body//div[@id="' + id + '"]//li')
   for e in episodes:
     title = e.xpath('.//span[@class="episodeTitle"]')[0].text.strip()
     try:
@@ -203,7 +203,7 @@ def FeaturedCategory(sender):
   dir = MediaContainer(title2=sender.itemTitle)
 
   i = 0
-  categories = XML.ElementFromURL(PROGRAMMES_FEATURED, isHTML=True, errors='ignore', cacheTime=CACHE_1HOUR).xpath('/html/body//li[@class="fourOnDemandSet"]')
+  categories = HTML.ElementFromURL(PROGRAMMES_FEATURED, errors='ignore', cacheTime=CACHE_1HOUR).xpath('/html/body//li[@class="fourOnDemandSet"]')
   for c in categories:
     title = c.xpath('./h2')[0].text.strip()
     i = i + 1
@@ -217,7 +217,7 @@ def FeaturedCategory(sender):
 def Featured(sender, i):
   dir = MediaContainer(viewGroup='InfoList', title2=sender.itemTitle)
 
-  programmes = XML.ElementFromURL(PROGRAMMES_FEATURED, isHTML=True, errors='ignore', cacheTime=CACHE_1HOUR).xpath('/html/body//li[@class="fourOnDemandSet"][' + str(i) + ']//li')
+  programmes = HTML.ElementFromURL(PROGRAMMES_FEATURED, errors='ignore', cacheTime=CACHE_1HOUR).xpath('/html/body//li[@class="fourOnDemandSet"][' + str(i) + ']//li')
   for p in programmes:
     url = p.xpath('./h3/a')[0].get('href')
 
@@ -244,7 +244,7 @@ def Search(sender, query):
       url = r['siteUrl']
 
       try:
-        thumb = XML.ElementFromURL(BASE_URL + url, isHTML=True, errors='ignore').xpath('/html/body//input[@type="hidden"]')[0].get('value')
+        thumb = HTML.ElementFromURL(BASE_URL + url, errors='ignore').xpath('/html/body//input[@type="hidden"]')[0].get('value')
       except:
         thumb = None
 
@@ -271,11 +271,11 @@ def GetThumb(url):
   if url.find(BASE_URL) == -1:
     url = BASE_URL + url
 
-  data = HTTP.Request(url, cacheTime=CACHE_1MONTH)
-  if data:
+  try:
+    data = HTTP.Request(url, cacheTime=CACHE_1MONTH)
     return DataObject(data, 'image/jpeg')
-
-  return Redirect(R(PLUGIN_ICON_DEFAULT))
+  except:
+    return Redirect(R(PLUGIN_ICON_DEFAULT))
 
 ####################################################################################################
 
