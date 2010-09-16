@@ -15,12 +15,11 @@ PLUGIN_TITLE               = '4oD'
 PLUGIN_PREFIX              = '/video/4od'
 
 BASE_URL                   = 'http://www.channel4.com'
-PROGRAMMES_CATEGORIES      = '%s/programmes' % BASE_URL
+PROGRAMMES_CATEGORIES      = '%s/programmes/4od' % BASE_URL # Same as PROGRAMMES_FEATURED now, but leave as seperate var in case something changes again
 PROGRAMMES_FEATURED        = '%s/programmes/4od' % BASE_URL
-
 PROGRAMMES_BY_DATE         = '%s/programmes/4od/episode-list/date/%%s' % BASE_URL
-PROGRAMMES_BY_CATEGORY     = '%s/programmes/tags/%%s/title/page-%%%%d' % BASE_URL
-PROGRAMMES_BY_LETTER       = '%s/programmes/atoz/%%s/page-%%%%d' % BASE_URL
+PROGRAMMES_BY_CATEGORY     = '%s/programmes/tags/%%s/4od/title/brand-list/page-%%%%d' % BASE_URL
+PROGRAMMES_BY_LETTER       = '%s/programmes/atoz/%%s/4od/brand-list/page-%%%%d' % BASE_URL
 PROGRAMMES_SEARCH          = '%s/programmes/long-form-search/?q=%%s' % BASE_URL
 
 # Default artwork and icon(s)
@@ -46,7 +45,7 @@ def Start():
 
   # Set the default cache time
   HTTP.CacheTime = CACHE_1DAY
-  HTTP.Headers['User-agent'] = 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.6; en-US; rv:1.9.2.9) Gecko/20100824 Firefox/3.6.9'
+  HTTP.Headers['User-agent'] = 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.6; en-US; rv:1.9.2.10) Gecko/20100914 Firefox/3.6.10'
 
 ###################################################################################################
 
@@ -123,34 +122,46 @@ def BrowseAZ(sender):
 ####################################################################################################
 
 def Programmes(sender, tag=None, char=None):
-  dir = MediaContainer(title2=sender.itemTitle)
+  dir = MediaContainer(viewGroup='InfoList', title2=sender.itemTitle)
 
   if tag != None:
     content_url = PROGRAMMES_BY_CATEGORY % tag
   elif char != None:
     content_url = PROGRAMMES_BY_LETTER % char.lower()
 
-  # How many pages are there?
-  numPages = len( HTML.ElementFromURL(content_url % 1, errors='ignore').xpath('/html/body//div[contains(@class,"pagination")][1]//*[@title="Page"]') )
-  if numPages == 0:
-    numPages = 1
-
-  # Loop over the pages
-  for i in range(1, numPages+1):
-    programmes = HTML.ElementFromURL(content_url % i, errors='ignore').xpath('/html/body//a[@class="watch-on-medium"]')
-
-    for p in programmes:
-      title = p.xpath('./parent::li/h3/a/span[@class="title"]')[0].text.strip()
-      url = p.get('href')
-      thumb = p.xpath('./parent::li/h3/a/img')[0].get('src').replace('145x82.jpg', '625x352.jpg')
-
-      dir.Append(Function(DirectoryItem(Series, title=title, thumb=Function(GetThumb, url=thumb)), url=url, thumb=thumb))
+  programmes = GetProgrammes(content_url)
+  for p in programmes:
+    dir.Append(Function(DirectoryItem(Series, title=p['title'], summary=p['summary'], thumb=Function(GetThumb, url=p['thumb'])), url=p['url'], thumb=p['thumb']))
 
   if len(dir) == 0:
     dir.header = 'No contents'
     dir.message = 'This directory is empty.'
 
   return dir
+
+####################################################################################################
+
+def GetProgrammes(url, page=1):
+  result = []
+
+  try:
+    programmes = HTML.ElementFromURL(url % (page), errors='ignore').xpath('//li')
+    for p in programmes:
+      prog = {}
+      prog['title'] = p.xpath('./h3/a/span')[0].text.strip()
+      prog['summary'] = p.xpath('./p[@class="synopsis"]/text()[1]')[0].strip()
+      prog['url'] = p.xpath('./h3/a')[0].get('href')
+      prog['thumb'] = p.xpath('./h3/a/img')[0].get('src').replace('145x82.jpg', '625x352.jpg')
+      result.append(prog)
+
+    # More pages?
+    next_page = HTML.ElementFromURL(url % (page), errors='ignore').xpath('//*[contains(@class,"nextUrl") and not(contains(@class,"endofresults"))]')
+    if len(next_page) > 0:
+      result.extend( GetProgrammes(url, page=page+1) )
+  except:
+    pass
+
+  return result
 
 ####################################################################################################
 
