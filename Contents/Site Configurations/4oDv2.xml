@@ -33,7 +33,8 @@
 				<frameLoaded />
 			</condition>
 			<action>
-				<run script="function makeChanges(){var el=document.getElementById('catchUpPlayer');if(el!=null){var x=el.parentNode.innerHTML;x=x.replace('.swf','.swf#4oDv2');x=x.replace(/primaryColor=0x([0-9A-F]{6})/i,'primaryColor=0xFF0000');document.getElementsByTagName('html')[0].innerHTML=x;}else{setTimeout('makeChanges()',100);}}makeChanges();" />
+				<run script="function makeChanges(){var el=document.getElementById('catchUpPlayer');if(el!=null){var x=el.parentNode.innerHTML;x=x.replace('.swf','.swf#4oDv2');x=x.replace(/primaryColor=0x([0-9A-F]{6})/i,'primaryColor=0xFF0000');document.getElementsByTagName('html')[0].innerHTML=x;}else{setTimeout('makeChanges()',100);}}" />
+				<run script="var result=document.cookie.match(/s_log_ever=(.+?);/g);if(result==undefined||unescape(result[1])!='C4: Logged in'){var url='http://www.channel4.com/4me/login?formview=modal&amp;redirectUrl=http://www.channel4.com/static/global/html/accesscontrol/login/loginSuccess.htm';var data={name:'${email}',password:'${password}'};jQuery.post(url,data,function(data){makeChanges();});}else{makeChanges();}" />
 				<pause time="5000" />
 				<goto state="playing" />
 			</action>
