@@ -26,5 +26,7 @@
 	</array>
 	<key>PlexPluginMode</key>
 	<string>AlwaysOn</string>
+	<key>PlexPluginConsoleLogging</key>
+	<string>0</string>
 </dict>
 </plist>

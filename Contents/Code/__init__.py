@@ -98,8 +98,8 @@ def BrowseCategory(sender):
 
   categories = HTML.ElementFromURL(PROGRAMMES_CATEGORIES, errors='ignore').xpath('/html/body//div[@id="categoryList"]//li/a')
   for c in categories:
-    title = c.xpath('./span')[0].text.strip()
-    tag = c.get('href').rsplit('/',1)[1]
+    title = c.xpath('./span')[0].text.rsplit('(',1)[0].strip()
+    tag = c.get('href').split('/')[3]
 
     dir.Append(Function(DirectoryItem(Programmes, title=title), tag=tag))
 
