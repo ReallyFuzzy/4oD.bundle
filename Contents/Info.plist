@@ -26,6 +26,10 @@
 	</array>
 	<key>PlexPluginMode</key>
 	<string>AlwaysOn</string>
+	<key>PlexPluginRegions</key>
+	<array>
+		<string>GB</string>
+	</array>
 	<key>PlexPluginConsoleLogging</key>
 	<string>0</string>
 </dict>
