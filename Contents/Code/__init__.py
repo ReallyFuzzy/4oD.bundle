@@ -44,8 +44,8 @@ def Start():
   WebVideoItem.thumb       = R(PLUGIN_ICON_DEFAULT)
 
   # Set the default cache time
-  HTTP.CacheTime = CACHE_1DAY
-  HTTP.Headers['User-agent'] = 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.6; en-US; rv:1.9.2.10) Gecko/20100914 Firefox/3.6.10'
+  HTTP.CacheTime = CACHE_1HOUR
+  HTTP.Headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.6; en-US; rv:1.9.2.16) Gecko/20110319 Firefox/3.6.16'
 
 ###################################################################################################
 
@@ -89,21 +89,27 @@ def Schedule(sender, date):
 
     dir.Append(Function(WebVideoItem(PlayVideo, title=title, infolabel=time + ' / ' + channel, thumb=Function(GetThumb, url=thumb)), url=url))
 
-  return dir
+  if len(dir) == 0:
+    return MessageContainer('Empty', 'This directory is empty')
+  else:
+    return dir
 
 ####################################################################################################
 
 def BrowseCategory(sender):
   dir = MediaContainer(title2=sender.itemTitle)
 
-  categories = HTML.ElementFromURL(PROGRAMMES_CATEGORIES, errors='ignore').xpath('/html/body//div[@id="categoryList"]//li/a')
+  categories = HTML.ElementFromURL(PROGRAMMES_CATEGORIES, errors='ignore', cacheTime=CACHE_1DAY).xpath('/html/body//div[@id="categoryList"]//li/a')
   for c in categories:
     title = c.xpath('./span')[0].text.rsplit('(',1)[0].strip()
     tag = c.get('href').split('/')[3]
 
     dir.Append(Function(DirectoryItem(Programmes, title=title), tag=tag))
 
-  return dir
+  if len(dir) == 0:
+    return MessageContainer('Empty', 'This directory is empty')
+  else:
+    return dir
 
 ####################################################################################################
 
@@ -134,10 +140,9 @@ def Programmes(sender, tag=None, char=None):
     dir.Append(Function(DirectoryItem(Series, title=p['title'], summary=p['summary'], thumb=Function(GetThumb, url=p['thumb'])), url=p['url'], thumb=p['thumb']))
 
   if len(dir) == 0:
-    dir.header = 'No contents'
-    dir.message = 'This directory is empty.'
-
-  return dir
+    return MessageContainer('Empty', 'This directory is empty')
+  else:
+    return dir
 
 ####################################################################################################
 
@@ -145,7 +150,7 @@ def GetProgrammes(url, page=1):
   result = []
 
   try:
-    programmes = HTML.ElementFromURL(url % (page), errors='ignore').xpath('//li')
+    programmes = HTML.ElementFromURL(url % (page), errors='ignore', cacheTime=CACHE_1DAY).xpath('//li')
     for p in programmes:
       prog = {}
       prog['title'] = p.xpath('./h3/a/span')[0].text.strip()
@@ -155,7 +160,7 @@ def GetProgrammes(url, page=1):
       result.append(prog)
 
     # More pages?
-    next_page = HTML.ElementFromURL(url % (page), errors='ignore').xpath('//*[contains(@class,"nextUrl") and not(contains(@class,"endofresults"))]')
+    next_page = HTML.ElementFromURL(url % (page), errors='ignore', cacheTime=CACHE_1DAY).xpath('//*[contains(@class,"nextUrl") and not(contains(@class,"endofresults"))]')
     if len(next_page) > 0:
       result.extend( GetProgrammes(url, page=page+1) )
   except:
@@ -171,21 +176,24 @@ def Series(sender, url, thumb):
   if url.find(BASE_URL) == -1:
     url = BASE_URL + url
 
-  series = HTML.ElementFromURL(url, errors='ignore', cacheTime=CACHE_1HOUR).xpath('/html/body//a[contains(@class,"tab")]')
+  series = HTML.ElementFromURL(url, errors='ignore', cacheTime=CACHE_1DAY).xpath('/html/body//a[contains(@class,"tab")]')
   for s in series:
     title = s.text.strip()
     id = s.get('href').strip('#')
 
     dir.Append(Function(DirectoryItem(Episodes, title=title, thumb=Function(GetThumb, url=thumb)), url=url, id=id))
 
-  return dir
+  if len(dir) == 0:
+    return MessageContainer('Empty', 'This directory is empty')
+  else:
+    return dir
 
 ####################################################################################################
 
 def Episodes(sender, url, id):
   dir = MediaContainer(viewGroup='InfoList', title2=sender.itemTitle)
 
-  episodes = HTML.ElementFromURL(url, errors='ignore', cacheTime=CACHE_1HOUR).xpath('/html/body//div[@id="' + id + '"]//li')
+  episodes = HTML.ElementFromURL(url, errors='ignore').xpath('/html/body//div[@id="' + id + '"]//li')
   for e in episodes:
     title = e.xpath('.//span[@class="episodeTitle"]')[0].text.strip()
     try:
@@ -206,7 +214,10 @@ def Episodes(sender, url, id):
 
     dir.Append(Function(WebVideoItem(PlayVideo, title=title, subtitle=subtitle, summary=summary, duration=duration, thumb=Function(GetThumb, url=thumb)), url=episode_url))
 
-  return dir
+  if len(dir) == 0:
+    return MessageContainer('Empty', 'This directory is empty')
+  else:
+    return dir
 
 ####################################################################################################
 
@@ -214,21 +225,24 @@ def FeaturedCategory(sender):
   dir = MediaContainer(title2=sender.itemTitle)
 
   i = 0
-  categories = HTML.ElementFromURL(PROGRAMMES_FEATURED, errors='ignore', cacheTime=CACHE_1HOUR).xpath('/html/body//li[@class="fourOnDemandSet"]')
+  categories = HTML.ElementFromURL(PROGRAMMES_FEATURED, errors='ignore').xpath('/html/body//li[@class="fourOnDemandSet"]')
   for c in categories:
     title = c.xpath('./h2')[0].text.strip()
     i = i + 1
 
     dir.Append(Function(DirectoryItem(Featured, title=title), i=i))
 
-  return dir
+  if len(dir) == 0:
+    return MessageContainer('Empty', 'This directory is empty')
+  else:
+    return dir
 
 ####################################################################################################
 
 def Featured(sender, i):
   dir = MediaContainer(viewGroup='InfoList', title2=sender.itemTitle)
 
-  programmes = HTML.ElementFromURL(PROGRAMMES_FEATURED, errors='ignore', cacheTime=CACHE_1HOUR).xpath('/html/body//li[@class="fourOnDemandSet"][' + str(i) + ']//li')
+  programmes = HTML.ElementFromURL(PROGRAMMES_FEATURED, errors='ignore').xpath('/html/body//li[@class="fourOnDemandSet"][' + str(i) + ']//li')
   for p in programmes:
     url = p.xpath('./h3/a')[0].get('href')
 
@@ -241,7 +255,10 @@ def Featured(sender, i):
 
       dir.Append(Function(DirectoryItem(Series, title=title, summary=summary, thumb=Function(GetThumb, url=thumb)), url=url, thumb=thumb))
 
-  return dir
+  if len(dir) == 0:
+    return MessageContainer('Empty', 'This directory is empty')
+  else:
+    return dir
 
 ####################################################################################################
 
@@ -262,10 +279,9 @@ def Search(sender, query):
       dir.Append(Function(DirectoryItem(Series, title=title, thumb=Function(GetThumb, url=thumb)), url=url, thumb=thumb))
 
   if len(dir) == 0:
-    dir.header = 'No results'
-    dir.message = 'Your search didn\'t return any results.'
-
-  return dir
+    return MessageContainer('No results', 'Your search didn\'t return any results.')
+  else:
+    return dir
 
 ####################################################################################################
 
