@@ -99,7 +99,7 @@ def Schedule(sender, date):
 def BrowseCategory(sender):
   dir = MediaContainer(title2=sender.itemTitle)
 
-  categories = HTML.ElementFromURL(PROGRAMMES_CATEGORIES, errors='ignore', cacheTime=CACHE_1DAY).xpath('/html/body//div[@id="categoryList"]//li/a')
+  categories = HTML.ElementFromURL(PROGRAMMES_CATEGORIES, errors='ignore', cacheTime=CACHE_1DAY).xpath('//div[@id="categoryList"]//li/a')
   for c in categories:
     title = c.xpath('./span')[0].text.rsplit('(',1)[0].strip()
     tag = c.get('href').split('/')[3]
@@ -176,7 +176,7 @@ def Series(sender, url, thumb):
   if url.find(BASE_URL) == -1:
     url = BASE_URL + url
 
-  series = HTML.ElementFromURL(url, errors='ignore', cacheTime=CACHE_1DAY).xpath('/html/body//a[contains(@class,"tab")]')
+  series = HTML.ElementFromURL(url, errors='ignore', cacheTime=CACHE_1DAY).xpath('//a[contains(@class,"tab")]')
   for s in series:
     title = s.text.strip()
     id = s.get('href').strip('#')
@@ -193,7 +193,7 @@ def Series(sender, url, thumb):
 def Episodes(sender, url, id):
   dir = MediaContainer(viewGroup='InfoList', title2=sender.itemTitle)
 
-  episodes = HTML.ElementFromURL(url, errors='ignore').xpath('/html/body//div[@id="' + id + '"]//li')
+  episodes = HTML.ElementFromURL(url, errors='ignore').xpath('//div[@id="' + id + '"]//li')
   for e in episodes:
     title = e.xpath('.//span[@class="episodeTitle"]')[0].text.strip()
     try:
@@ -225,7 +225,7 @@ def FeaturedCategory(sender):
   dir = MediaContainer(title2=sender.itemTitle)
 
   i = 0
-  categories = HTML.ElementFromURL(PROGRAMMES_FEATURED, errors='ignore').xpath('/html/body//li[@class="fourOnDemandSet"]')
+  categories = HTML.ElementFromURL(PROGRAMMES_FEATURED, errors='ignore').xpath('//li[@class="fourOnDemandSet"]')
   for c in categories:
     title = c.xpath('./h2')[0].text.strip()
     i = i + 1
@@ -242,7 +242,7 @@ def FeaturedCategory(sender):
 def Featured(sender, i):
   dir = MediaContainer(viewGroup='InfoList', title2=sender.itemTitle)
 
-  programmes = HTML.ElementFromURL(PROGRAMMES_FEATURED, errors='ignore').xpath('/html/body//li[@class="fourOnDemandSet"][' + str(i) + ']//li')
+  programmes = HTML.ElementFromURL(PROGRAMMES_FEATURED, errors='ignore').xpath('//li[@class="fourOnDemandSet"][' + str(i) + ']//li')
   for p in programmes:
     url = p.xpath('./h3/a')[0].get('href')
 
@@ -272,7 +272,7 @@ def Search(sender, query):
       url = r['siteUrl']
 
       try:
-        thumb = HTML.ElementFromURL(BASE_URL + url, errors='ignore').xpath('/html/body//input[@type="hidden"]')[0].get('value')
+        thumb = HTML.ElementFromURL(BASE_URL + url, errors='ignore').xpath('//input[@type="hidden"]')[0].get('value')
       except:
         thumb = None
 
