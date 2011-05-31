@@ -289,8 +289,7 @@ def PlayVideo(sender, url):
   if url.find(BASE_URL) == -1:
     url = BASE_URL + url
 
-  # '#4oDv2' is added to the url to make sure my site config is used and not an old one
-  return Redirect(WebVideoItem(url + '#4oDv2'))
+  return Redirect(WebVideoItem(url))
 
 ####################################################################################################
 
