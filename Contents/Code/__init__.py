@@ -9,46 +9,36 @@
 import re
 from string import ascii_uppercase
 
-###################################################################################################
+TITLE = '4oD'
+ART = 'art-default.jpg'
+ICON = 'icon-default.png'
+ICON_SEARCH = 'icon-search.png'
 
-PLUGIN_TITLE               = '4oD'
-PLUGIN_PREFIX              = '/video/4od'
-
-BASE_URL                   = 'http://www.channel4.com'
-PROGRAMMES_CATEGORIES      = '%s/programmes/4od' % BASE_URL # Same as PROGRAMMES_FEATURED now, but leave as seperate var in case something changes again
-PROGRAMMES_FEATURED        = '%s/programmes/4od' % BASE_URL
-PROGRAMMES_BY_DATE         = '%s/programmes/4od/episode-list/date/%%s' % BASE_URL
-PROGRAMMES_BY_CATEGORY     = '%s/programmes/tags/%%s/4od/title/brand-list/page-%%%%d' % BASE_URL
-PROGRAMMES_BY_LETTER       = '%s/programmes/atoz/%%s/4od/brand-list/page-%%%%d' % BASE_URL
-PROGRAMMES_SEARCH          = '%s/programmes/long-form-search/?q=%%s' % BASE_URL
-
-# Default artwork and icon(s)
-PLUGIN_ARTWORK             = 'art-default.jpg'
-PLUGIN_ICON_DEFAULT        = 'icon-default.png'
-PLUGIN_ICON_SEARCH         = 'icon-search.png'
+BASE_URL               = 'http://www.channel4.com'
+PROGRAMMES_CATEGORIES  = '%s/programmes/4od' % BASE_URL # Same as PROGRAMMES_FEATURED now, but leave as seperate var in case something changes again
+PROGRAMMES_FEATURED    = '%s/programmes/4od' % BASE_URL
+PROGRAMMES_BY_DATE     = '%s/programmes/4od/episode-list/date/%%s' % BASE_URL
+PROGRAMMES_BY_CATEGORY = '%s/programmes/tags/%%s/4od/title/brand-list/page-%%%%d' % BASE_URL
+PROGRAMMES_BY_LETTER   = '%s/programmes/atoz/%%s/4od/brand-list/page-%%%%d' % BASE_URL
+PROGRAMMES_SEARCH      = '%s/programmes/long-form-search/?q=%%s' % BASE_URL
 
 ###################################################################################################
-
 def Start():
-  Plugin.AddPrefixHandler(PLUGIN_PREFIX, MainMenu, PLUGIN_TITLE, PLUGIN_ICON_DEFAULT, PLUGIN_ARTWORK)
+  Plugin.AddPrefixHandler('/video/4od', MainMenu, TITLE, ICON, ART)
   Plugin.AddViewGroup('List', viewMode='List', mediaType='items')
   Plugin.AddViewGroup('InfoList', viewMode='InfoList', mediaType='items')
 
-  # Set the default MediaContainer attributes
-  MediaContainer.title1    = PLUGIN_TITLE
+  MediaContainer.title1 = TITLE
   MediaContainer.viewGroup = 'List'
-  MediaContainer.art       = R(PLUGIN_ARTWORK)
+  MediaContainer.art = R(ART)
 
-  # Default icons for DirectoryItem and WebVideoItem in case there isn't an image
-  DirectoryItem.thumb      = R(PLUGIN_ICON_DEFAULT)
-  WebVideoItem.thumb       = R(PLUGIN_ICON_DEFAULT)
+  DirectoryItem.thumb = R(ICON)
+  WebVideoItem.thumb = R(ICON)
 
-  # Set the default cache time
   HTTP.CacheTime = CACHE_1HOUR
-  HTTP.Headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.6; en-US; rv:1.9.2.16) Gecko/20110319 Firefox/3.6.16'
+  HTTP.Headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1'
 
 ###################################################################################################
-
 def MainMenu():
   dir = MediaContainer()
 
@@ -56,12 +46,11 @@ def MainMenu():
   dir.Append(Function(DirectoryItem(BrowseCategory, title='Browse by Category')))
   dir.Append(Function(DirectoryItem(BrowseAZ, title='Browse Alphabetically')))
   dir.Append(Function(DirectoryItem(FeaturedCategory, title='Featured')))
-  dir.Append(Function(InputDirectoryItem(Search, title='Search', prompt='Search for Programmes', thumb=R(PLUGIN_ICON_SEARCH))))
+  dir.Append(Function(InputDirectoryItem(Search, title='Search', prompt='Search for Programmes', thumb=R(ICON_SEARCH))))
 
   return dir
 
 ####################################################################################################
-
 def BrowseDate(sender):
   dir = MediaContainer(title2=sender.itemTitle)
 
@@ -75,7 +64,6 @@ def BrowseDate(sender):
   return dir
 
 ####################################################################################################
-
 def Schedule(sender, date):
   dir = MediaContainer(title2=sender.itemTitle)
 
@@ -95,7 +83,6 @@ def Schedule(sender, date):
     return dir
 
 ####################################################################################################
-
 def BrowseCategory(sender):
   dir = MediaContainer(title2=sender.itemTitle)
 
@@ -112,7 +99,6 @@ def BrowseCategory(sender):
     return dir
 
 ####################################################################################################
-
 def BrowseAZ(sender):
   dir = MediaContainer(title2=sender.itemTitle)
 
@@ -126,7 +112,6 @@ def BrowseAZ(sender):
   return dir
 
 ####################################################################################################
-
 def Programmes(sender, tag=None, char=None):
   dir = MediaContainer(viewGroup='InfoList', title2=sender.itemTitle)
 
@@ -145,7 +130,6 @@ def Programmes(sender, tag=None, char=None):
     return dir
 
 ####################################################################################################
-
 def GetProgrammes(url, page=1):
   result = []
 
@@ -169,7 +153,6 @@ def GetProgrammes(url, page=1):
   return result
 
 ####################################################################################################
-
 def Series(sender, url, thumb):
   dir = MediaContainer(title2=sender.itemTitle)
 
@@ -189,7 +172,6 @@ def Series(sender, url, thumb):
     return dir
 
 ####################################################################################################
-
 def Episodes(sender, url, id):
   dir = MediaContainer(viewGroup='InfoList', title2=sender.itemTitle)
 
@@ -220,7 +202,6 @@ def Episodes(sender, url, id):
     return dir
 
 ####################################################################################################
-
 def FeaturedCategory(sender):
   dir = MediaContainer(title2=sender.itemTitle)
 
@@ -238,7 +219,6 @@ def FeaturedCategory(sender):
     return dir
 
 ####################################################################################################
-
 def Featured(sender, i):
   dir = MediaContainer(viewGroup='InfoList', title2=sender.itemTitle)
 
@@ -261,7 +241,6 @@ def Featured(sender, i):
     return dir
 
 ####################################################################################################
-
 def Search(sender, query):
   dir = MediaContainer(title2=sender.itemTitle)
 
@@ -284,7 +263,6 @@ def Search(sender, query):
     return dir
 
 ####################################################################################################
-
 def PlayVideo(sender, url):
   if url.find(BASE_URL) == -1:
     url = BASE_URL + url
@@ -292,7 +270,6 @@ def PlayVideo(sender, url):
   return Redirect(WebVideoItem(url))
 
 ####################################################################################################
-
 def GetThumb(url):
   if url.find(BASE_URL) == -1:
     url = BASE_URL + url
@@ -301,10 +278,9 @@ def GetThumb(url):
     data = HTTP.Request(url, cacheTime=CACHE_1MONTH)
     return DataObject(data, 'image/jpeg')
   except:
-    return Redirect(R(PLUGIN_ICON_DEFAULT))
+    return Redirect(R(ICON))
 
 ####################################################################################################
-
 def CalculateTime(timecode):
   milliseconds = 0
   d = re.search('([0-9]+) mins', timecode)
