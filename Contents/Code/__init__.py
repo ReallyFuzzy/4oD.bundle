@@ -36,7 +36,7 @@ def Start():
   WebVideoItem.thumb = R(ICON)
 
   HTTP.CacheTime = CACHE_1HOUR
-  HTTP.Headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1'
+  HTTP.Headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:6.0.2) Gecko/20100101 Firefox/6.0.2'
 
 ###################################################################################################
 def MainMenu():
@@ -179,16 +179,15 @@ def Episodes(sender, url, id):
 
   episodes = HTML.ElementFromURL(url, errors='ignore').xpath('//li[@id="' + id + '"]/ol/li')
   for e in episodes:
-
     title = e.get('data-episodetitle')  
     subtitle = e.get('data-episodeinfo');
-    
+
     # Swap title and subtitle as for most series, at this point title is the series name rather than ep name.
     if (len(title) > 0 and len(subtitle) > 0):
       swap = title
       title = subtitle
       subtitle = swap
-    
+
     summary = re.sub('<[^<]+?>', '', e.get('data-episodesynopsis'))
 
     try:
@@ -198,11 +197,10 @@ def Episodes(sender, url, id):
       summary += '\nExpiry: ' + expiry
     except:
       pass
-    
+
     thumb = e.get('data-image-url');
-    duration = -1 #CalculateTime( e.xpath('.//span[@class="duration"]')[0].text )
+    duration = 0 #CalculateTime( e.xpath('.//span[@class="duration"]')[0].text )
     episode_url = url + '#' + e.get('data-assetid')
-    
 
     dir.Append(Function(WebVideoItem(PlayVideo, title=title, subtitle=subtitle, summary=summary, duration=duration, thumb=Function(GetThumb, url=thumb)), url=episode_url))
 
@@ -260,7 +258,7 @@ def Search(sender, query):
       title = r['value'].strip()
       url = r['siteUrl']
       thumb = None
-      
+
       # Strip out /4oD from URL to get programme landing page with big logo.
       if (url.find('/4od')) > 0:
         thumb_url = url[0:-4]
