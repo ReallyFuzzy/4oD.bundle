@@ -15,11 +15,11 @@ ICON = 'icon-default.png'
 ICON_SEARCH = 'icon-search.png'
 
 BASE_URL               = 'http://www.channel4.com'
-PROGRAMMES_CATEGORIES  = '%s/programmes/4od' % BASE_URL # Same as PROGRAMMES_FEATURED now, but leave as seperate var in case something changes again
+PROGRAMMES_CATEGORIES  = '%s/programmes/tags/4od' % BASE_URL
 PROGRAMMES_FEATURED    = '%s/programmes/4od' % BASE_URL
 PROGRAMMES_BY_DATE     = '%s/programmes/4od/episode-list/date/%%s' % BASE_URL
-PROGRAMMES_BY_CATEGORY = '%s/programmes/tags/%%s/4od/title/brand-list/page-%%%%d' % BASE_URL
-PROGRAMMES_BY_LETTER   = '%s/programmes/atoz/%%s/4od/brand-list/page-%%%%d' % BASE_URL
+PROGRAMMES_BY_CATEGORY = '%s/programmes/tags/%%s/4od/title/page-%%%%d' % BASE_URL
+PROGRAMMES_BY_LETTER   = '%s/programmes/atoz/%%s/4od/page-%%%%d' % BASE_URL
 PROGRAMMES_SEARCH      = '%s/programmes/long-form-search/?q=%%s' % BASE_URL
 
 ###################################################################################################
@@ -86,9 +86,9 @@ def Schedule(sender, date):
 def BrowseCategory(sender):
   dir = MediaContainer(title2=sender.itemTitle)
 
-  categories = HTML.ElementFromURL(PROGRAMMES_CATEGORIES, errors='ignore', cacheTime=CACHE_1DAY).xpath('//div[@id="categoryList"]//li/a')
+  categories = HTML.ElementFromURL(PROGRAMMES_CATEGORIES, errors='ignore', cacheTime=CACHE_1DAY).xpath('//div[contains(@class,"category-nav")]//li/a')
   for c in categories:
-    title = c.xpath('./span')[0].text.rsplit('(',1)[0].strip()
+    title = c.text
     tag = c.get('href').split('/')[3]
 
     dir.Append(Function(DirectoryItem(Programmes, title=title), tag=tag))
@@ -134,12 +134,12 @@ def GetProgrammes(url, page=1):
   result = []
 
   try:
-    programmes = HTML.ElementFromURL(url % (page), errors='ignore', cacheTime=CACHE_1DAY).xpath('//li')
+    programmes = HTML.ElementFromURL(url % (page), errors='ignore', cacheTime=CACHE_1DAY).xpath('//div[contains(@class,"programmes")]//li')
     for p in programmes:
       prog = {}
       prog['title'] = p.xpath('./h3/a/span')[0].text.strip()
       prog['summary'] = p.xpath('./p[@class="synopsis"]/text()[1]')[0].strip()
-      prog['url'] = p.xpath('./h3/a')[0].get('href')
+      prog['url'] = p.xpath('./h3/a')[0].get('href') + '/4od'
       prog['thumb'] = p.xpath('./h3/a/img')[0].get('src').replace('145x82.jpg', '625x352.jpg')
       result.append(prog)
 
@@ -159,9 +159,11 @@ def Series(sender, url, thumb):
   if url.find(BASE_URL) == -1:
     url = BASE_URL + url
 
-  series = HTML.ElementFromURL(url, errors='ignore', cacheTime=CACHE_1DAY).xpath('//a[contains(@class,"tab")]')
+  series = HTML.ElementFromURL(url, errors='ignore', cacheTime=CACHE_1DAY).xpath('//div[contains(@class,"seriesLink")]//li/a')
   for s in series:
     title = s.text.strip()
+    if (len(title) <= 2 and len(title) > 0):
+      title = 'Series ' + title
     id = s.get('href').strip('#')
 
     dir.Append(Function(DirectoryItem(Episodes, title=title, thumb=Function(GetThumb, url=thumb)), url=url, id=id))
@@ -175,24 +177,32 @@ def Series(sender, url, thumb):
 def Episodes(sender, url, id):
   dir = MediaContainer(viewGroup='InfoList', title2=sender.itemTitle)
 
-  episodes = HTML.ElementFromURL(url, errors='ignore').xpath('//div[@id="' + id + '"]//li')
+  episodes = HTML.ElementFromURL(url, errors='ignore').xpath('//li[@id="' + id + '"]/ol/li')
   for e in episodes:
-    title = e.xpath('.//span[@class="episodeTitle"]')[0].text.strip()
-    try:
-      subtitle = e.xpath('.//span[@class="episodeNumber"]')[0].text.strip()
-    except:
-      subtitle = ''
-    summary = e.xpath('.//p[@class="synopsis formatted"]')[0].text.strip()
+
+    title = e.get('data-episodetitle')  
+    subtitle = e.get('data-episodeinfo');
+    
+    # Swap title and subtitle as for most series, at this point title is the series name rather than ep name.
+    if (len(title) > 0 and len(subtitle) > 0):
+      swap = title
+      title = subtitle
+      subtitle = swap
+    
+    summary = re.sub('<[^<]+?>', '', e.get('data-episodesynopsis'))
 
     try:
-      broadcast = e.xpath('.//span[@class="txDate"]')[0].text.strip()
+      broadcast = e.get('data-txdate')
       summary += '\n\nFirst broadcast: ' + broadcast
+      expiry = e.xpath('.//li[@class="programmeExpiry"]')[0].text
+      summary += '\nExpiry: ' + expiry
     except:
       pass
-
-    thumb = e.xpath('.//input[@type="hidden"]')[0].get('value')
-    duration = CalculateTime( e.xpath('.//span[@class="duration"]')[0].text )
-    episode_url = e.xpath('.//a[contains(@class,"popOut")]')[0].get('href')
+    
+    thumb = e.get('data-image-url');
+    duration = -1 #CalculateTime( e.xpath('.//span[@class="duration"]')[0].text )
+    episode_url = url + '#' + e.get('data-assetid')
+    
 
     dir.Append(Function(WebVideoItem(PlayVideo, title=title, subtitle=subtitle, summary=summary, duration=duration, thumb=Function(GetThumb, url=thumb)), url=episode_url))
 
@@ -206,7 +216,7 @@ def FeaturedCategory(sender):
   dir = MediaContainer(title2=sender.itemTitle)
 
   i = 0
-  categories = HTML.ElementFromURL(PROGRAMMES_FEATURED, errors='ignore').xpath('//li[@class="fourOnDemandSet"]')
+  categories = HTML.ElementFromURL(PROGRAMMES_FEATURED, errors='ignore').xpath('//li[@class="fourOnDemandCollection"]')
   for c in categories:
     title = c.xpath('./h2')[0].text.strip()
     i = i + 1
@@ -222,7 +232,7 @@ def FeaturedCategory(sender):
 def Featured(sender, i):
   dir = MediaContainer(viewGroup='InfoList', title2=sender.itemTitle)
 
-  programmes = HTML.ElementFromURL(PROGRAMMES_FEATURED, errors='ignore').xpath('//li[@class="fourOnDemandSet"][' + str(i) + ']//li')
+  programmes = HTML.ElementFromURL(PROGRAMMES_FEATURED, errors='ignore').xpath('//li[@class="fourOnDemandCollection"][' + str(i) + ']//li')
   for p in programmes:
     url = p.xpath('./h3/a')[0].get('href')
 
@@ -249,11 +259,15 @@ def Search(sender, query):
     for r in result['results']:
       title = r['value'].strip()
       url = r['siteUrl']
-
-      try:
-        thumb = HTML.ElementFromURL(BASE_URL + url, errors='ignore').xpath('//input[@type="hidden"]')[0].get('value')
-      except:
-        thumb = None
+      thumb = None
+      
+      # Strip out /4oD from URL to get programme landing page with big logo.
+      if (url.find('/4od')) > 0:
+        thumb_url = url[0:-4]
+        try:
+          thumb = HTML.ElementFromURL(BASE_URL + thumb_url, errors='ignore').xpath('//img[@id="heroImage"]')[0].get('src')
+        except:
+          thumb = None
 
       dir.Append(Function(DirectoryItem(Series, title=title, thumb=Function(GetThumb, url=thumb)), url=url, thumb=thumb))
 
