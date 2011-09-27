@@ -1,11 +1,4 @@
 # -*- coding: utf-8 -*-
-###################################################################################################
-#
-# 4oD plugin for Plex (by sander1)
-# http://wiki.plexapp.com/index.php/4oD
-#
-###################################################################################################
-
 import re
 from string import ascii_uppercase
 
@@ -200,7 +193,7 @@ def Episodes(sender, url, id):
 
     thumb = e.get('data-image-url');
     duration = 0 #CalculateTime( e.xpath('.//span[@class="duration"]')[0].text )
-    episode_url = url + '#' + e.get('data-assetid')
+    episode_url = url + '/player/' + e.get('data-assetid')
 
     dir.Append(Function(WebVideoItem(PlayVideo, title=title, subtitle=subtitle, summary=summary, duration=duration, thumb=Function(GetThumb, url=thumb)), url=episode_url))
 
