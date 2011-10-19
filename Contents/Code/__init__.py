@@ -26,7 +26,7 @@ def Start():
   MediaContainer.art = R(ART)
 
   DirectoryItem.thumb = R(ICON)
-  WebVideoItem.thumb = R(ICON)
+  VideoItem.thumb = R(ICON)
 
   HTTP.CacheTime = CACHE_1HOUR
   HTTP.Headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:6.0.2) Gecko/20100101 Firefox/6.0.2'
@@ -68,7 +68,7 @@ def Schedule(sender, date):
     url = p.xpath('.//a')[0].get('href').replace('4od#', '4od/player/')
     thumb = p.xpath('.//a/img')[0].get('src').replace('106x60.jpg', '625x352.jpg')
 
-    dir.Append(Function(WebVideoItem(PlayVideo, title=title, infolabel=time + ' / ' + channel, thumb=Function(GetThumb, url=thumb)), url=url))
+    dir.Append(Function(VideoItem(PlayVideo, title=title, infolabel=time + ' / ' + channel, thumb=Function(GetThumb, url=thumb)), url=url))
 
   if len(dir) == 0:
     return MessageContainer('Empty', 'This directory is empty')
@@ -195,7 +195,7 @@ def Episodes(sender, url, id):
     duration = 0 #CalculateTime( e.xpath('.//span[@class="duration"]')[0].text )
     episode_url = url + '/player/' + e.get('data-assetid')
 
-    dir.Append(Function(WebVideoItem(PlayVideo, title=title, subtitle=subtitle, summary=summary, duration=duration, thumb=Function(GetThumb, url=thumb)), url=episode_url))
+    dir.Append(Function(VideoItem(PlayVideo, title=title, subtitle=subtitle, summary=summary, duration=duration, thumb=Function(GetThumb, url=thumb)), url=episode_url))
 
   if len(dir) == 0:
     return MessageContainer('Empty', 'This directory is empty')
