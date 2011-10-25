@@ -185,17 +185,15 @@ def Episodes(sender, url, id):
 
     try:
       broadcast = e.get('data-txdate')
-      summary += '\n\nFirst broadcast: ' + broadcast
-      expiry = e.xpath('.//li[@class="programmeExpiry"]')[0].text
-      summary += '\nExpiry: ' + expiry
+      if broadcast != "":
+        summary += '\n\nFirst broadcast: ' + broadcast
     except:
       pass
 
     thumb = e.get('data-image-url');
-    duration = 0 #CalculateTime( e.xpath('.//span[@class="duration"]')[0].text )
     episode_url = url + '/player/' + e.get('data-assetid')
 
-    dir.Append(Function(VideoItem(PlayVideo, title=title, subtitle=subtitle, summary=summary, duration=duration, thumb=Function(GetThumb, url=thumb)), url=episode_url))
+    dir.Append(Function(VideoItem(PlayVideo, title=title, subtitle=subtitle, summary=summary, thumb=Function(GetThumb, url=thumb)), url=episode_url))
 
   if len(dir) == 0:
     return MessageContainer('Empty', 'This directory is empty')
