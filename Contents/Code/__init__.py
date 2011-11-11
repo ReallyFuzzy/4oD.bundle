@@ -60,7 +60,7 @@ def BrowseDate(sender):
 def Schedule(sender, date):
   dir = MediaContainer(title2=sender.itemTitle)
 
-  programmes = HTML.ElementFromURL(PROGRAMMES_BY_DATE % date, errors='ignore', cacheTime=1800).xpath('//li')
+  programmes = HTML.ElementFromURL(PROGRAMMES_BY_DATE % date, cacheTime=1800).xpath('//li')
   for p in programmes:
     title = p.xpath('.//a/span/text()')[0].strip()
     time = p.xpath('.//span[@class="txTime"]')[0].text.strip()
@@ -68,7 +68,7 @@ def Schedule(sender, date):
     url = p.xpath('.//a')[0].get('href').replace('4od#', '4od/player/')
     thumb = p.xpath('.//a/img')[0].get('src').replace('106x60.jpg', '625x352.jpg')
 
-    dir.Append(Function(VideoItem(PlayVideo, title=title, infolabel=time + ' / ' + channel, thumb=Function(GetThumb, url=thumb)), url=url))
+    dir.Append(VideoItem(Route(PlayVideo, url=url), title=title, infolabel=time + ' / ' + channel, thumb=Function(GetThumb, url=thumb)))
 
   if len(dir) == 0:
     return MessageContainer('Empty', 'This directory is empty')
@@ -79,7 +79,7 @@ def Schedule(sender, date):
 def BrowseCategory(sender):
   dir = MediaContainer(title2=sender.itemTitle)
 
-  categories = HTML.ElementFromURL(PROGRAMMES_CATEGORIES, errors='ignore', cacheTime=CACHE_1DAY).xpath('//div[contains(@class,"category-nav")]//li/a')
+  categories = HTML.ElementFromURL(PROGRAMMES_CATEGORIES, cacheTime=CACHE_1DAY).xpath('//div[contains(@class,"category-nav")]//li/a')
   for c in categories:
     title = c.text
     tag = c.get('href').split('/')[3]
@@ -127,7 +127,7 @@ def GetProgrammes(url, page=1):
   result = []
 
   try:
-    programmes = HTML.ElementFromURL(url % (page), errors='ignore', cacheTime=CACHE_1DAY).xpath('//div[contains(@class,"programmes")]//li')
+    programmes = HTML.ElementFromURL(url % (page), cacheTime=CACHE_1DAY).xpath('//div[contains(@class,"programmes")]//li')
     for p in programmes:
       prog = {}
       prog['title'] = p.xpath('./h3/a/span')[0].text.strip()
@@ -137,7 +137,7 @@ def GetProgrammes(url, page=1):
       result.append(prog)
 
     # More pages?
-    next_page = HTML.ElementFromURL(url % (page), errors='ignore', cacheTime=CACHE_1DAY).xpath('//*[contains(@class,"nextUrl") and not(contains(@class,"endofresults"))]')
+    next_page = HTML.ElementFromURL(url % (page), cacheTime=CACHE_1DAY).xpath('//*[contains(@class,"nextUrl") and not(contains(@class,"endofresults"))]')
     if len(next_page) > 0:
       result.extend( GetProgrammes(url, page=page+1) )
   except:
@@ -152,7 +152,7 @@ def Series(sender, url, thumb):
   if url.find(BASE_URL) == -1:
     url = BASE_URL + url
 
-  series = HTML.ElementFromURL(url, errors='ignore', cacheTime=CACHE_1DAY).xpath('//div[contains(@class,"seriesLink")]//li/a')
+  series = HTML.ElementFromURL(url, cacheTime=CACHE_1DAY).xpath('//div[contains(@class,"seriesLink")]//li/a')
   for s in series:
     title = s.text.strip()
     if (len(title) <= 2 and len(title) > 0):
@@ -170,7 +170,7 @@ def Series(sender, url, thumb):
 def Episodes(sender, url, id):
   dir = MediaContainer(viewGroup='InfoList', title2=sender.itemTitle)
 
-  episodes = HTML.ElementFromURL(url, errors='ignore').xpath('//li[@id="' + id + '"]/ol/li')
+  episodes = HTML.ElementFromURL(url).xpath('//li[@id="' + id + '"]/ol/li')
   for e in episodes:
     title = e.get('data-episodetitle')  
     subtitle = e.get('data-episodeinfo');
@@ -193,7 +193,7 @@ def Episodes(sender, url, id):
     thumb = e.get('data-image-url');
     episode_url = url + '/player/' + e.get('data-assetid')
 
-    dir.Append(Function(VideoItem(PlayVideo, title=title, subtitle=subtitle, summary=summary, thumb=Function(GetThumb, url=thumb)), url=episode_url))
+    dir.Append(VideoItem(Route(PlayVideo, url=episode_url), title=title, subtitle=subtitle, summary=summary, thumb=Function(GetThumb, url=thumb)))
 
   if len(dir) == 0:
     return MessageContainer('Empty', 'This directory is empty')
@@ -205,7 +205,7 @@ def FeaturedCategory(sender):
   dir = MediaContainer(title2=sender.itemTitle)
 
   i = 0
-  categories = HTML.ElementFromURL(PROGRAMMES_FEATURED, errors='ignore').xpath('//li[@class="fourOnDemandCollection"]')
+  categories = HTML.ElementFromURL(PROGRAMMES_FEATURED).xpath('//li[@class="fourOnDemandCollection"]')
   for c in categories:
     title = c.xpath('./h2')[0].text.strip()
     i = i + 1
@@ -221,7 +221,7 @@ def FeaturedCategory(sender):
 def Featured(sender, i):
   dir = MediaContainer(viewGroup='InfoList', title2=sender.itemTitle)
 
-  programmes = HTML.ElementFromURL(PROGRAMMES_FEATURED, errors='ignore').xpath('//li[@class="fourOnDemandCollection"][' + str(i) + ']//li')
+  programmes = HTML.ElementFromURL(PROGRAMMES_FEATURED).xpath('//li[@class="fourOnDemandCollection"][' + str(i) + ']//li')
   for p in programmes:
     url = p.xpath('./h3/a')[0].get('href')
 
@@ -254,7 +254,7 @@ def Search(sender, query):
       if (url.find('/4od')) > 0:
         thumb_url = url[0:-4]
         try:
-          thumb = HTML.ElementFromURL(BASE_URL + thumb_url, errors='ignore').xpath('//img[@id="heroImage"]')[0].get('src')
+          thumb = HTML.ElementFromURL(BASE_URL + thumb_url).xpath('//img[@id="heroImage"]')[0].get('src')
         except:
           thumb = None
 
@@ -266,7 +266,8 @@ def Search(sender, query):
     return dir
 
 ####################################################################################################
-def PlayVideo(sender, url):
+@route('/video/4od/v/p')
+def PlayVideo(url):
   if url.find(BASE_URL) == -1:
     url = BASE_URL + url
 
