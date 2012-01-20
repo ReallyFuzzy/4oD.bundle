@@ -29,7 +29,7 @@ def Start():
   VideoItem.thumb = R(ICON)
 
   HTTP.CacheTime = CACHE_1HOUR
-  HTTP.Headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:6.0.2) Gecko/20100101 Firefox/6.0.2'
+  HTTP.Headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:9.0.1) Gecko/20100101 Firefox/9.0.1'
 
 ###################################################################################################
 def MainMenu():
@@ -40,6 +40,7 @@ def MainMenu():
   dir.Append(Function(DirectoryItem(BrowseAZ, title='Browse Alphabetically')))
   dir.Append(Function(DirectoryItem(FeaturedCategory, title='Featured')))
   dir.Append(Function(InputDirectoryItem(Search, title='Search', prompt='Search for Programmes', thumb=R(ICON_SEARCH))))
+  dir.Append(PrefsItem('Preferences', thumb=R('icon-prefs.png')))
 
   return dir
 
