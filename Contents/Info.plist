@@ -22,6 +22,8 @@
 	<array>
 		<string>Flash</string>
 	</array>
+	<key>PlexClientPlatforms</key>
+	<string>*</string>
 	<key>PlexPluginMode</key>
 	<string>AlwaysOn</string>
 	<key>PlexClientCapabilities</key>
