@@ -2,30 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CFBundleDevelopmentRegion</key>
-	<string>English</string>
-	<key>CFBundleExecutable</key>
-	<string>Hello</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.plexapp.plugins.4oD</string>
-	<key>CFBundleInfoDictionaryVersion</key>
-	<string>6.0</string>
-	<key>CFBundlePackageType</key>
-	<string>AAPL</string>
-	<key>CFBundleSignature</key>
-	<string>hook</string>
-	<key>CFBundleVersion</key>
-	<string>1.0</string>
-	<key>PlexFrameworkVersion</key>
-	<string>2</string>
-	<key>PlexMediaContainer</key>
-	<array>
-		<string>Flash</string>
-	</array>
-	<key>PlexClientPlatforms</key>
-	<string>*</string>
-	<key>PlexPluginMode</key>
-	<string>AlwaysOn</string>
 	<key>PlexClientCapabilities</key>
 	<dict>
 		<key>protocols</key>
@@ -33,6 +11,14 @@
 			<string>webkit</string>
 		</array>
 	</dict>
+	<key>PlexClientPlatforms</key>
+	<string>*</string>
+	<key>PlexFrameworkVersion</key>
+	<string>2</string>
+	<key>PlexMediaContainer</key>
+	<array>
+		<string>Flash</string>
+	</array>
 	<key>PlexPluginRegions</key>
 	<array>
 		<string>GB</string>
