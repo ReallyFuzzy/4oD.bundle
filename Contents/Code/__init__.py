@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-import re
-from string import ascii_uppercase
 
 TITLE = '4oD'
 ART = 'art-default.jpg'
@@ -9,6 +6,7 @@ ICON_SEARCH = 'icon-search.png'
 ICON_PREFS = 'icon-prefs.png'
 
 RE_EPISODE_SUMMARY     = Regex('<[^<]+?>')
+RE_EPISODE_DETAILS     = Regex('Series (?P<series>[0-9]+) Episode (?P<episode>[0-9]+)')
 
 BASE_URL               = 'http://www.channel4.com'
 PROGRAMMES_CATEGORIES  = '%s/programmes/tags/4od' % BASE_URL
@@ -117,7 +115,7 @@ def BrowseAZ(title):
   oc = ObjectContainer(title2 = title)
 
   # A to Z
-  for char in list(ascii_uppercase):
+  for char in list(String.UPPERCASE):
     oc.add(DirectoryObject(key = Callback(Programmes, title = char, char = char), title = char))
 
   # 0-9
@@ -220,7 +218,7 @@ def Episodes(title, url, id, series_thumb = None):
     series = None
     episode = None
     try:
-      episode_details_dict = re.match('Series (?P<series>[0-9]+) Episode (?P<episode>[0-9]+)', e.get('data-episodeinfo')).groupdict()
+      episode_details_dict = RE_EPISODE_DETAILS.match(e.get('data-episodeinfo')).groupdict()
       series = int(episode_details_dict['series'])
       episode = int(episode_details_dict['episode'])
     except: pass
@@ -346,10 +344,3 @@ def GetThumb(series_page):
 ####################################################################################################
 def GetThumbCallback(series_page):
   return Redirect(GetThumb(series_page = series_page))
-
-####################################################################################################
-def CalculateTime(timecode):
-  milliseconds = 0
-  d = re.search('([0-9]+) mins', timecode)
-  milliseconds += int( d.group(1) ) * 60 * 1000
-  return milliseconds
