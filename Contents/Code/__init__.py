@@ -77,7 +77,7 @@ def Schedule(title, date):
     time = p.xpath('.//span[@class="txTime"]')[0].text.strip()
     channel = p.xpath('.//span[@class="txChannel"]')[0].text.strip()
     url = p.xpath('.//a')[0].get('href').replace('4od#', '4od/player/')
-    thumb = p.xpath('.//a/img')[0].get('src').replace('106x60.jpg', '625x352.jpg')
+    thumb = p.xpath('.//a/img')[0].get('src').rsplit('_',1)[0] + '_625x352.jpg'
 
     if url.find(BASE_URL) == -1:
       url = BASE_URL + url
@@ -160,7 +160,7 @@ def GetProgrammes(url, page=1):
       prog['title'] = p.xpath('./h3/a/span')[0].text.strip()
       prog['summary'] = p.xpath('./p[@class="synopsis"]/text()[1]')[0].strip()
       prog['url'] = p.xpath('./h3/a')[0].get('href') + '/4od'
-      prog['thumb'] = p.xpath('./h3/a/img')[0].get('src').replace('145x82.jpg', '625x352.jpg')
+      prog['thumb'] = p.xpath('./h3/a/img')[0].get('src').rsplit('_',1)[0] + '_625x352.jpg'
       result.append(prog)
 
     # More pages?
@@ -227,7 +227,7 @@ def Episodes(title, url, id, series_thumb = None):
     try: date = Datetime.ParseDate(e.get('data-txdate'))
     except: pass
 
-    thumb = e.get('data-image-url')
+    thumb = e.get('data-image-url').rsplit('_',1)[0] + '_625x352.jpg'
     if (len(thumb) != 0 and thumb.find(BASE_URL) == -1):
       thumb = BASE_URL + thumb
 
