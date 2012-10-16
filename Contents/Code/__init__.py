@@ -231,6 +231,10 @@ def Episodes(title, url, id, series_thumb = None):
     if (len(thumb) != 0 and thumb.find(BASE_URL) == -1):
       thumb = BASE_URL + thumb
 
+    thumb_urls = [thumb]
+    if (series_thumb):
+      thumb_urls.append(series_thumb)
+
     episode_url = url + '/player/' + e.get('data-assetid')
     if episode_url.find(BASE_URL) == -1:
       episode_url = BASE_URL + episode_url
@@ -239,7 +243,7 @@ def Episodes(title, url, id, series_thumb = None):
       url = episode_url, 
       title = title, 
       summary = summary,
-      thumb = Resource.ContentsOfURLWithFallback(url = [thumb, series_thumb], fallback = ICON),
+      thumb = Resource.ContentsOfURLWithFallback(url = thumb_urls, fallback = ICON),
       show = show,
       index = episode,
       season = series,
